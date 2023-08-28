@@ -1,15 +1,10 @@
 import os
-import environ
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(DEBUG=(bool, True))
-
-environ.Env.read_env(BASE_DIR / '.env')
-
-SECRET_KEY = env.str('SECRET_KEY', 'secret')
+SECRET_KEY = 'hhz7l-ltdismtf@bzyz+rple7*s*w$jak%whj@(@u0eok^f9k4'
 
 DEBUG = True
 
