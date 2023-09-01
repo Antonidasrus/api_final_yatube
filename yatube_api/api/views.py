@@ -1,13 +1,17 @@
-from rest_framework import viewsets, permissions, filters
+from django.shortcuts import get_object_or_404
+
+from rest_framework import viewsets, filters
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+
 from posts.models import Post, Group, Follow
-from .serializers import (PostSerializer,
-                          GroupSerializer,
-                          CommentSerializer,
-                          FollowSerializer)
-from .permissions import IsAuthorOrReadOnly
+from api.serializers import (PostSerializer,
+                             GroupSerializer,
+                             CommentSerializer,
+                             FollowSerializer)
+from api.permissions import IsAuthorAndAuthenticatedOrReadOnly
+from api.querysets import return_queryset
 
 
 class ListCreateViewSet(ListModelMixin,
@@ -17,10 +21,10 @@ class ListCreateViewSet(ListModelMixin,
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = return_queryset(Post)
     serializer_class = PostSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthorAndAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -33,7 +37,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthorAndAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
@@ -47,7 +51,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(ListCreateViewSet):
     serializer_class = FollowSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('following__username',)
 
